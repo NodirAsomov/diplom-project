@@ -1,4 +1,5 @@
-param([string]$GatewayUrl = 'http://localhost:8080', [string]$EurekaUrl = 'http://localhost:8761')
+param([string]$GatewayUrl = 'http://localhost:8080', [string]$EurekaUrl = 'http://localhost:8761',
+      [string]$StatsUrl = 'http://localhost:9090')
 $ErrorActionPreference = 'Stop'
 
 $registry = Invoke-RestMethod "$EurekaUrl/eureka/apps" -Headers @{Accept = 'application/json'}
@@ -41,4 +42,13 @@ if (-not ($stats | Where-Object { $_.uri -eq '/events' -and $_.hits -gt 0 })) {
     throw 'Stats Server did not record the /events request'
 }
 Write-Output "Stats Server recorded /events: $raw"
+$externalStats = Invoke-RestMethod "$StatsUrl/stats?start=2000-01-01%2000:00:00&end=2100-01-01%2000:00:00&uris=/events&unique=false"
+if (-not ($externalStats | Where-Object { $_.uri -eq '/events' -and $_.hits -gt 0 })) {
+    throw 'Stats API is not available through the compatibility port'
+}
+$hit = @{app = 'infrastructure-smoke'; uri = '/infrastructure-smoke'; ip = '127.0.0.1';
+         timestamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')} | ConvertTo-Json
+$response = Invoke-WebRequest "$StatsUrl/hit" -Method Post -ContentType 'application/json' -Body $hit
+if ($response.StatusCode -ne 201) { throw 'Stats /hit request failed through the compatibility port' }
+Write-Output 'Stats API on external port 9090: GET /stats -> 200, POST /hit -> 201'
 Write-Output 'Infrastructure smoke check passed'

@@ -23,6 +23,12 @@ docker compose up -d --build
 
 Eureka: http://localhost:8761. API: http://localhost:8080.
 
+Для совместимости с проверками CI внешний порт 9090 также направлен в Gateway.
+Маршруты /hit и /stats используют lb://stats-server: сам Stats Server сохраняет
+случайный порт и обнаруживается через Eureka. Gateway запускается после успешных
+проверок готовности Main Service и Stats Server. В Docker их служебные health endpoints
+доступны на внутреннем порту 8081; бизнес API остаются на случайных портах.
+
 Config Server использует профиль native и конфигурации из
 `infra/config-server/src/main/resources/config/{main-service,stats-server,gateway-server}`.
 Каждый клиент находит Config Server через Eureka по имени `config-server`.

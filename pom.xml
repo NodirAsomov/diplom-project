@@ -6,14 +6,15 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.0</version>
+		<version>3.3.13</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
 	<name>Explore With Me</name>
 	<modules>
 		<module>stats</module>
-		<module>main-service</module>
+		<module>core</module>
+		<module>infra</module>
 	</modules>
 
 	<groupId>ru.practicum</groupId>
@@ -23,6 +24,8 @@
 
 	<properties>
 		<java.version>21</java.version>
+		<spring-retry.version>2.0.12</spring-retry.version>
+		<spring-cloud.version>2023.0.6</spring-cloud.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<springdoc.version>1.6.11</springdoc.version>
@@ -31,12 +34,18 @@
 		<checkstyle.version>10.3</checkstyle.version>
 		<spotbugs.maven.plugin.version>4.8.5.0</spotbugs.maven.plugin.version>
 		<jacoco.maven.plugin.version>0.8.12</jacoco.maven.plugin.version>
-		<spring-web.version>6.2.16</spring-web.version>
 		<commons-collections4.version>4.5.0</commons-collections4.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 			<dependency>
 				<groupId>org.springdoc</groupId>
 				<artifactId>springdoc-openapi-ui</artifactId>
@@ -86,6 +95,7 @@
 						</execution>
 					</executions>
 					<dependencies>
+
 						<dependency>
 							<groupId>com.puppycrawl.tools</groupId>
 							<artifactId>checkstyle</artifactId>

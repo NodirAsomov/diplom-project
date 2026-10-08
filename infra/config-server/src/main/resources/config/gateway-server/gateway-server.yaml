@@ -1,0 +1,15 @@
+server:
+  port: 8080
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: main-service-api
+          uri: lb://main-service
+          predicates:
+            - Path=/admin/**,/users/**,/events/**,/categories/**,/compilations/**,/locations/**
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 5

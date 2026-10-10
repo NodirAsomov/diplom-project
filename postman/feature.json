@@ -3674,7 +3674,7 @@
         "requests": {},
         "exec": [
           "API = class {",
-          "    constructor(postman, verbose = false, baseUrl = \"http://localhost:8080\") {",
+          "    constructor(postman, verbose = false, baseUrl = (postman.environment.get(\"baseUrl\") || postman.collectionVariables.get(\"baseUrl\") || \"http://localhost:8080\")) {",
           "        this.baseUrl = baseUrl;",
           "        this.pm = postman;",
           "        this._verbose = verbose;",

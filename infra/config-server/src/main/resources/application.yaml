@@ -1,5 +1,5 @@
 server:
-  port: 0
+  port: 8888
 spring:
   application:
     name: config-server
@@ -9,11 +9,9 @@ spring:
     config:
       server:
         native:
-          search-locations: classpath:/config/main-service/,classpath:/config/stats-server/,classpath:/config/gateway-server/
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.uuid}
+          search-locations: classpath:/config/
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

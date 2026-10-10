@@ -1,14 +1,13 @@
 server:
-  port: 8080
-
+  port: 0
+  shutdown: graceful
 stats-server:
-  url: http://stats-server:9090
-
+  service-id: stats-server
 spring:
   datasource:
-    url: jdbc:postgresql://ewm-db:6541/ewm-main
-    username: ewm
-    password: ewm
+    url: ${MAIN_DATABASE_URL:jdbc:postgresql://localhost:6542/ewm-main}
+    username: ${DATABASE_USERNAME:ewm}
+    password: ${DATABASE_PASSWORD:ewm}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -24,11 +23,12 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: UTC
-
-  shutdown: graceful
-
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 5
 logging:
   level:
     root: info
     ru.practicum.ewm: debug
-    org.zalando.logbook: trace

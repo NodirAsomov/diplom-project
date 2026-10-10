@@ -23,3 +23,7 @@ target/
 
 ewm-main-service.json
 ewm_main_report.html
+
+reports/
+
+!postman/ewm-main-service.json

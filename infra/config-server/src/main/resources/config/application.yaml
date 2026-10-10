@@ -1,0 +1,35 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 500
+            readTimeout: 1500
+    loadbalancer:
+      cache:
+        ttl: 5s
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 3
+        wait-duration-in-open-state: 5s
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 4s

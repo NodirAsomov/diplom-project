@@ -1,13 +1,12 @@
 package ru.practicum.ewm.stats.clients;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.ewm.stats.base.BaseClient;
+import ru.practicum.ewm.stats.base.StatsServiceDiscovery;
 import ru.practicum.ewm.stats.dto.StatHitRequest;
 
 import static ru.practicum.ewm.stats.base.ClientConstants.API_PREFIX_HIT;
@@ -16,13 +15,15 @@ import static ru.practicum.ewm.stats.base.ClientConstants.API_PREFIX_HIT;
 @Component
 public class HitClient extends BaseClient {
 
-    public HitClient(RestTemplateBuilder builder, @Value("${stats-server.url}") String serverUrl) {
+    private final StatsServiceDiscovery discovery;
+
+    public HitClient(RestTemplateBuilder builder, StatsServiceDiscovery discovery) {
         super(
                 builder
-                        .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                         .requestFactory(() -> new JdkClientHttpRequestFactory())
                         .build()
         );
+        this.discovery = discovery;
     }
 
     public void saveHit(StatHitRequest request) {
@@ -31,6 +32,6 @@ public class HitClient extends BaseClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<StatHitRequest> entity = new HttpEntity<>(request, headers);
 
-        rest.postForEntity(API_PREFIX_HIT, entity, Void.class);
+        rest.postForEntity(discovery.makeUri(API_PREFIX_HIT), entity, Void.class);
     }
 }

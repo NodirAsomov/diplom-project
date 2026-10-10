@@ -4,10 +4,14 @@ spring:
   application:
     name: discovery-server
 eureka:
+  server:
+    response-cache-update-interval-ms: 5000
   instance:
     hostname: ${EUREKA_HOST:localhost}
   client:
-    register-with-eureka: false
+    register-with-eureka:
+  server:
+    response-cache-update-interval-ms: 5000 false
     fetch-registry: false
     service-url:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/

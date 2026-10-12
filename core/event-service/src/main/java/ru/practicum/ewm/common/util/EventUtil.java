@@ -2,39 +2,43 @@ package ru.practicum.ewm.common.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.ewm.client.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import ru.practicum.ewm.client.RequestClient;
+import ru.practicum.ewm.client.ReadResilience;
+import ru.practicum.ewm.stats.client.AnalyzerClient;
+import ru.practicum.ewm.stats.proto.RecommendedEventProto;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class EventUtil {
-    private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final RequestClient requests;
-    private final StatsFeignClient stats;
+    private final AnalyzerClient analyzer;
     private final ReadResilience resilience;
 
     public Map<Long, Long> confirmed(Collection<Long> eventIds) {
-        if (eventIds.isEmpty()) return Map.of();
+        if (eventIds.isEmpty()) {
+            return Map.of();
+        }
         return resilience.read("requests", () -> requests.counts(new ArrayList<>(eventIds)), Map::of);
     }
 
-    public Map<Long, Long> views(Collection<Long> eventIds) {
-        if (eventIds.isEmpty()) return Map.of();
-        var uris = eventIds.stream().map(id -> "/events/" + id).toList();
-        return resilience.read("statistics", () -> stats.stats("2020-01-01 00:00:00",
-                LocalDateTime.now().format(FORMAT), uris, true).stream()
-                .collect(Collectors.toMap(hit -> Long.valueOf(hit.getUri().substring("/events/".length())),
-                        hit -> hit.getHits(), Long::sum)), Map::of);
+    public Map<Long, Double> ratings(Collection<Long> eventIds) {
+        if (eventIds.isEmpty()) {
+            return Map.of();
+        }
+        return analyzer.getInteractionsCount(eventIds).collect(Collectors.toMap(
+                RecommendedEventProto::getEventId, RecommendedEventProto::getScore));
     }
 
     public Long getConfirmedRequests(Long id) {
         return confirmed(List.of(id)).getOrDefault(id, 0L);
     }
 
-    public Long getViews(Long id) {
-        return views(List.of(id)).getOrDefault(id, 0L);
+    public double getRating(Long id) {
+        return ratings(List.of(id)).getOrDefault(id, 0.0);
     }
 }

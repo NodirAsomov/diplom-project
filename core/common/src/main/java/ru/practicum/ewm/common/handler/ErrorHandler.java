@@ -23,9 +23,13 @@ public class ErrorHandler {
         return new ResponseEntity<>(e.getErrorResponse(), status);
     }
 
-    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ExceptionHandler({MissingServletRequestParameterException.class,
+            org.springframework.web.bind.MissingRequestHeaderException.class,
+            jakarta.validation.ConstraintViolationException.class,
+            org.springframework.web.method.annotation.HandlerMethodValidationException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleMissingParams(MissingServletRequestParameterException e) {
+    public ErrorResponse handleBadRequest(Exception e) {
         log.warn("400 BAD_REQUEST: ", e);
         return ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.name())

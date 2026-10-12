@@ -36,7 +36,7 @@ public class EventMapper {
                 .build();
     }
 
-    public EventFullDto toEventFullDto(Event event, Long views, Long confirmedRequests,
+    public EventFullDto toEventFullDto(Event event, double rating, Long confirmedRequests,
                                        RatingStatsDto ratingStats, Long commentCount) {
         return EventFullDto.builder()
                 .id(event.getId())
@@ -54,15 +54,14 @@ public class EventMapper {
                 .requestModeration(event.getRequestModeration())
                 .state(event.getState().name())
                 .title(event.getTitle())
-                .views(views)
                 .likes(ratingStats.getLikes())
                 .dislikes(ratingStats.getDislikes())
-                .rating(ratingStats.getRating())
+                .rating(rating)
                 .commentCount(commentCount)
                 .build();
     }
 
-    public static EventShortDto toEventShortDto(Event event, Long views, Long confirmedRequests,
+    public static EventShortDto toEventShortDto(Event event, double rating, Long confirmedRequests,
                                                 RatingStatsDto ratingStats, Long commentCount) {
         return EventShortDto.builder()
                 .id(event.getId())
@@ -73,10 +72,9 @@ public class EventMapper {
                 .initiator(new UserShortDto(event.getInitiatorId(), event.getInitiatorName()))
                 .paid(event.getPaid())
                 .title(event.getTitle())
-                .views(views)
                 .likes(ratingStats.getLikes())
                 .dislikes(ratingStats.getDislikes())
-                .rating(ratingStats.getRating())
+                .rating(rating)
                 .commentCount(commentCount)
                 .build();
     }

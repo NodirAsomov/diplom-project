@@ -111,7 +111,7 @@ public class LocationServiceImpl implements LocationService {
 
         List<Event> events = eventRepository.findAllById(eventIds);
 
-        Map<Long, Long> views = eventUtil.views(eventIds);
+        Map<Long, Double> interactionRatings = eventUtil.ratings(eventIds);
         Map<Long, Long> confirmed = eventUtil.confirmed(eventIds);
         Map<Long, RatingStatsDto> ratings = featureReader.summary(eventIds, null).getRatings();
         Map<Long, Long> commentCounts = getCommentCounts(eventIds);
@@ -119,7 +119,7 @@ public class LocationServiceImpl implements LocationService {
         return events.stream()
                 .map(event -> EventMapper.toEventShortDto(
                         event,
-                        views.getOrDefault(event.getId(), 0L),
+                        interactionRatings.getOrDefault(event.getId(), 0.0),
                         confirmed.getOrDefault(event.getId(), 0L),
                         ratings.getOrDefault(event.getId(), RatingStatsDto.EMPTY),
                         commentCounts.getOrDefault(event.getId(), 0L)))

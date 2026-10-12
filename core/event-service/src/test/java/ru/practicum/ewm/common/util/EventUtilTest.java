@@ -13,7 +13,7 @@ import static org.mockito.Mockito.*;
 
 class EventUtilTest {
     private final RequestClient requests = mock(RequestClient.class);
-    private final StatsFeignClient stats = mock(StatsFeignClient.class);
+    private final ru.practicum.ewm.stats.client.AnalyzerClient stats = mock(ru.practicum.ewm.stats.client.AnalyzerClient.class);
 
     private EventUtil util() {
         CircuitBreakerFactory<?, ?> factory = mock(CircuitBreakerFactory.class);
@@ -49,7 +49,7 @@ class EventUtilTest {
     void emptyPageNeverCallsOtherServices() {
         var util = util();
         assertTrue(util.confirmed(List.of()).isEmpty());
-        assertTrue(util.views(List.of()).isEmpty());
+        assertTrue(util.ratings(List.of()).isEmpty());
         verifyNoInteractions(requests, stats);
     }
 }

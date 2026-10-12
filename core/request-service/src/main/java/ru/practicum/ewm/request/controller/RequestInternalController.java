@@ -22,6 +22,13 @@ public class RequestInternalController {
                 .collect(Collectors.toMap(row -> row.getEventId(), row -> row.getCount()));
     }
 
+    @GetMapping("/users/{userId}/events/{eventId}/confirmed")
+    @Transactional(readOnly = true)
+    public boolean hasConfirmed(@PathVariable long userId, @PathVariable long eventId) {
+        return repository.existsByRequesterIdAndEventIdAndStatus(userId, eventId,
+                ru.practicum.ewm.request.model.RequestStatus.CONFIRMED);
+    }
+
     @DeleteMapping("/users/{id}")
     @Transactional
     public void deleteUser(@PathVariable Long id) {

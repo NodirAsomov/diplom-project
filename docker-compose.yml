@@ -367,6 +367,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+  # The shared CI uses `up --detach`, then waits only 60 seconds for ports.
+  # This one-shot service keeps `up` waiting for the existing API healthchecks.
+  # Its legacy name also makes the shared CI's `logs ewm-service` command valid.
+  ewm-service:
+    image: postgres:16.1
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["echo 'Gateway, statistics and core API services are healthy'"]
+    depends_on:
+      gateway-server:
+        condition: service_healthy
+      stats-server:
+        condition: service_healthy
+      event-service:
+        condition: service_healthy
+      request-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      feature-service:
+        condition: service_healthy
   newman:
     image: postman/newman:6-alpine
     profiles: ["test"]

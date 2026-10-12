@@ -1,0 +1,10 @@
+.git
+**/src
+**/target/classes
+**/target/test-classes
+**/target/generated-*
+**/target/surefire-reports
+**/target/*.jar.original
+*.log
+postman
+reports

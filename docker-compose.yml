@@ -1,111 +1,279 @@
 services:
-  discovery-server:
-    build:
-      context: .
-      dockerfile: infra/discovery-server/Dockerfile
-    ports:
-      - "8761:8761"
-    environment:
-      EUREKA_HOST: discovery-server
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8761/actuator/health"]
-      interval: 3s
-      timeout: 3s
-      start_period: 30s
-      retries: 20
   config-server:
     build:
       context: .
-      dockerfile: infra/config-server/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: infra/config-server/target/config-server-0.0.1-SNAPSHOT.jar
+    ports:
+      - "8888:8888"
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8888/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+  discovery-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: infra/discovery-server/target/discovery-server-0.0.1-SNAPSHOT.jar
+    ports:
+      - "8761:8761"
     environment:
+      CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://discovery-server:8761/eureka/
+      EUREKA_HOST: discovery-server
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8761/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
     depends_on:
-      discovery-server:
+      config-server:
         condition: service_healthy
   gateway-server:
     build:
       context: .
-      dockerfile: infra/gateway-server/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: infra/gateway-server/target/gateway-server-0.0.1-SNAPSHOT.jar
     ports:
       - "8080:8080"
-      - "9090:8080"
     environment:
+      CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://discovery-server:8761/eureka/
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
     depends_on:
       config-server:
-        condition: service_started
-      ewm-service:
         condition: service_healthy
-      stats-server:
+      discovery-server:
+        condition: service_healthy
+  event-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: core/event-service/target/event-service-0.0.1-SNAPSHOT.jar
+    ports:
+      - "8081:8081"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://events-db:5432/events
+      SPRING_DATASOURCE_USERNAME: ewm
+      SPRING_DATASOURCE_PASSWORD: ewm
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      events-db:
+        condition: service_healthy
+  request-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: core/request-service/target/request-service-0.0.1-SNAPSHOT.jar
+    ports:
+      - "8082:8082"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://requests-db:5432/requests
+      SPRING_DATASOURCE_USERNAME: ewm
+      SPRING_DATASOURCE_PASSWORD: ewm
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8082/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      requests-db:
+        condition: service_healthy
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: core/user-service/target/user-service-0.0.1-SNAPSHOT.jar
+    ports:
+      - "8083:8083"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://users-db:5432/users
+      SPRING_DATASOURCE_USERNAME: ewm
+      SPRING_DATASOURCE_PASSWORD: ewm
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8083/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      users-db:
+        condition: service_healthy
+  feature-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: core/feature-service/target/feature-service-0.0.1-SNAPSHOT.jar
+    ports:
+      - "8084:8084"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://features-db:5432/features
+      SPRING_DATASOURCE_USERNAME: ewm
+      SPRING_DATASOURCE_PASSWORD: ewm
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8084/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      features-db:
         condition: service_healthy
   stats-server:
     build:
       context: .
-      dockerfile: stats/stats-server/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: stats/stats-server/target/stats-server-0.0.1-SNAPSHOT.jar
+    ports:
+      - "9090:9090"
     environment:
+      CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://discovery-server:8761/eureka/
-      STATS_DATABASE_URL: jdbc:postgresql://stats-db:5432/ewm-stats
-      MANAGEMENT_SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stats
+      SPRING_DATASOURCE_USERNAME: ewm
+      SPRING_DATASOURCE_PASSWORD: ewm
+
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:9090/actuator/health"]
       interval: 5s
       timeout: 3s
-      start_period: 60s
-      retries: 20
+      retries: 30
+      start_period: 30s
     depends_on:
       config-server:
-        condition: service_started
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
       stats-db:
         condition: service_healthy
-  ewm-service:
-    build:
-      context: .
-      dockerfile: core/main-service/Dockerfile
+  events-db:
+    image: postgres:16.1
     environment:
-      EUREKA_URL: http://discovery-server:8761/eureka/
-      MAIN_DATABASE_URL: jdbc:postgresql://ewm-db:5432/ewm-main
-      MANAGEMENT_SERVER_PORT: 8081
+      POSTGRES_DB: events
+      POSTGRES_USER: ewm
+      POSTGRES_PASSWORD: ewm
+    volumes:
+      - events_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8081/actuator/health"]
+      test: ["CMD-SHELL", "pg_isready -U ewm -d events"]
       interval: 5s
       timeout: 3s
-      start_period: 60s
       retries: 20
-    depends_on:
-      config-server:
-        condition: service_started
-      ewm-db:
-        condition: service_healthy
+  requests-db:
+    image: postgres:16.1
+    environment:
+      POSTGRES_DB: requests
+      POSTGRES_USER: ewm
+      POSTGRES_PASSWORD: ewm
+    volumes:
+      - requests_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ewm -d requests"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  users-db:
+    image: postgres:16.1
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: ewm
+      POSTGRES_PASSWORD: ewm
+    volumes:
+      - users_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ewm -d users"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  features-db:
+    image: postgres:16.1
+    environment:
+      POSTGRES_DB: features
+      POSTGRES_USER: ewm
+      POSTGRES_PASSWORD: ewm
+    volumes:
+      - features_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ewm -d features"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
   stats-db:
     image: postgres:16.1
-    ports:
-      - "6541:5432"
     environment:
-      POSTGRES_PASSWORD: ewm
+      POSTGRES_DB: stats
       POSTGRES_USER: ewm
-      POSTGRES_DB: ewm-stats
-    volumes:
-      - stats_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER"]
-      timeout: 5s
-      interval: 5s
-      retries: 10
-  ewm-db:
-    image: postgres:16.1
-    ports:
-      - "6542:5432"
-    environment:
       POSTGRES_PASSWORD: ewm
-      POSTGRES_USER: ewm
-      POSTGRES_DB: ewm-main
     volumes:
-      - ewm_db_data:/var/lib/postgresql/data
+      - stats_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER"]
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U ewm -d stats"]
       interval: 5s
-      retries: 10
+      timeout: 3s
+      retries: 20
+  newman:
+    image: postman/newman:6-alpine
+    profiles: ["test"]
+    volumes:
+      - ./postman:/etc/newman:ro
+      - ./reports:/reports
+    working_dir: /etc/newman
 volumes:
-  stats_db_data:
-  ewm_db_data:
+  events_data:
+  requests_data:
+  users_data:
+  features_data:
+  stats_data:

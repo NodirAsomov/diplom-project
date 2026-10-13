@@ -40,9 +40,12 @@ public class EventPublicController {
                                            @RequestParam(required = false) String sort,
                                            @RequestParam(defaultValue = "0") @Min(0) Integer from,
                                            @RequestParam(defaultValue = "10") @Min(1) Integer size,
-                                           @RequestHeader(value = "X-EWM-USER-ID", required = false) Long userId) {
+                                           @RequestHeader(value = "X-EWM-USER-ID", required = false) Long userId,
+                                           HttpServletRequest request) {
         List<EventShortDto> result = eventService.getPublished(text, categories, paid, rangeStart, rangeEnd,
                 onlyAvailable, sort, from, size, userId);
+        stats.hit(new StatHitRequest("ewm-main-service", request.getRequestURI(), request.getRemoteAddr(),
+                LocalDateTime.now()));
         Map<String, Long> views = views(result.stream().map(dto -> "/events/" + dto.getId()).toList());
         result.forEach(dto -> dto.setViews(views.getOrDefault("/events/" + dto.getId(), 0L)));
         return result;

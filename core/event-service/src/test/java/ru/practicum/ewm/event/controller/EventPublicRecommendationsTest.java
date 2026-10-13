@@ -56,6 +56,23 @@ class EventPublicRecommendationsTest {
     }
 
     @Test
+    void everyListRequestRecordsHitEvenWhenNoEventsAreFound() throws Exception {
+        when(events.getPublished(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of());
+        for (int i = 0; i < 2; i++) {
+            mvc.perform(get("/events").param("text", "concert").with(request -> {
+                request.setRemoteAddr("192.0.2.1");
+                return request;
+            })).andExpect(status().isOk()).andExpect(content().json("[]"));
+        }
+        verify(stats, times(2)).hit(argThat(hit -> hit.getAppName().equals("ewm-main-service")
+                && hit.getUri().equals("/events") && hit.getIp().equals("192.0.2.1")
+                && hit.getTimestamp() != null));
+        verifyNoMoreInteractions(stats);
+        verifyNoInteractions(collector);
+    }
+
+    @Test
     void unpublishedEventReturnsNotFoundWithoutRecordingView() throws Exception {
         when(events.getPublishedById(4L)).thenThrow(new EventNotFoundException(4L));
         mvc.perform(get("/events/4")).andExpect(status().isNotFound());

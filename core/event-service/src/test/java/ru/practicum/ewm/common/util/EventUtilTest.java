@@ -46,6 +46,19 @@ class EventUtilTest {
     }
 
     @Test
+    void ratingIsTheInteractionScoreReturnedByAnalyzer() {
+        var ids = List.of(1L, 2L);
+        when(stats.getInteractionsCount(ids)).thenReturn(java.util.stream.Stream.of(
+                ru.practicum.ewm.stats.proto.RecommendedEventProto.newBuilder()
+                        .setEventId(1L).setScore(1.8).build(),
+                ru.practicum.ewm.stats.proto.RecommendedEventProto.newBuilder()
+                        .setEventId(2L).setScore(0.4).build()));
+        assertEquals(Map.of(1L, 1.8, 2L, 0.4), util().ratings(ids));
+        verify(stats).getInteractionsCount(ids);
+        verifyNoInteractions(requests);
+    }
+
+    @Test
     void emptyPageNeverCallsOtherServices() {
         var util = util();
         assertTrue(util.confirmed(List.of()).isEmpty());

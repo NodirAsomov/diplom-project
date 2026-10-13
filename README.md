@@ -1,6 +1,26 @@
 # ExploreWithMe
 
-Сервис разделён на самостоятельные Spring Boot приложения. Внешний API доступен через Gateway на порту 8080. Схемы запросов и ответов сохранены.
+## Третий этап: рекомендации
+
+В текущем API событий поле `rating` имеет тип `double` и содержит сумму максимальных весов взаимодействий,
+полученную через gRPC из Analyzer. Поле `views` удалено. `GET /events` не отправляет действия просмотра.
+Для `GET /events/{id}`, `GET /events/recommendations` и `PUT /events/{eventId}/like` нужен заголовок
+`X-EWM-USER-ID`. Просмотры, регистрации и лайки передаются в Collector, затем через Kafka в Aggregator и Analyzer.
+
+Коллекции старого этапа `ewm-stat-service.json` и проверки `rating = likes - dislikes` в `feature.json`
+проверяют прежний контракт и не подтверждают соответствие третьему этапу. Результаты проверок ниже
+относятся к прежнему контракту API. Для текущего этапа используйте unit-тесты и отдельный smoke-тест:
+
+```sh
+mvn verify -Pcheck
+docker compose -f docker-compose.yml -f scripts/recommendations-smoke.compose.yaml up --build -d --wait
+mvn -pl stats/stats-client -am test -Dtest=RecommendationSmokeTest -Dsurefire.failIfNoSpecifiedTests=false -Dstats.smoke=true
+```
+
+Smoke-тест проверяет прохождение действий через Collector, Kafka и Analyzer, сумму весов,
+сходство мероприятий и исключение уже просмотренных мероприятий из рекомендаций.
+
+Сервис разделён на самостоятельные Spring Boot приложения. Внешний API доступен через Gateway на порту 8080. Контракт событий обновлён для третьего этапа, как описано выше.
 
 ## Архитектура
 

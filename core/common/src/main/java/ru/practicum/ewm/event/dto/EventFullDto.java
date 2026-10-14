@@ -1,6 +1,7 @@
 package ru.practicum.ewm.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.user.dto.UserShortDto;
@@ -19,6 +20,9 @@ public class EventFullDto {
     private CategoryDto category;
 
     private Long confirmedRequests;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long views;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private String createdOn;
@@ -45,13 +49,12 @@ public class EventFullDto {
 
     private String title;
 
-    private Long views;
 
     private Long likes;
 
     private Long dislikes;
 
-    private Long rating;
+    private double rating;
 
     private Long commentCount;
 }

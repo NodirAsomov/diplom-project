@@ -1,0 +1,11 @@
+services:
+  collector:
+    environment:
+      GRPC_SERVER_PORT: 9090
+    ports:
+      - "9095:9090"
+  analyzer:
+    environment:
+      GRPC_SERVER_PORT: 9090
+    ports:
+      - "9096:9090"

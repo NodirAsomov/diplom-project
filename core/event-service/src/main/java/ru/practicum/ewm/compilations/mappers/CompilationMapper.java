@@ -29,13 +29,13 @@ public class CompilationMapper {
         var ids = models.stream().flatMap(model -> model.getEvents().stream())
                 .map(link -> link.getEvent().getId()).distinct().toList();
         var summary = featureReader.summary(ids, null);
-        var views = eventUtil.views(ids);
+        var interactionRatings = eventUtil.ratings(ids);
         var confirmed = eventUtil.confirmed(ids);
         return models.stream().map(model -> CompilationDtoResponse.builder()
                 .id(model.getId()).pinned(model.getPinned()).title(model.getTitle())
                 .events(model.getEvents().stream().map(link -> {
                     var event = link.getEvent();
-                    return EventMapper.toEventShortDto(event, views.getOrDefault(event.getId(), 0L),
+                    return EventMapper.toEventShortDto(event, interactionRatings.getOrDefault(event.getId(), 0.0),
                             confirmed.getOrDefault(event.getId(), 0L),
                             summary.getRatings().getOrDefault(event.getId(), RatingStatsDto.EMPTY),
                             summary.getComments().getOrDefault(event.getId(), 0L));

@@ -14,6 +14,7 @@ import java.util.List;
 public class RequestPrivateController {
 
     private final RequestService requestService;
+    private final ru.practicum.ewm.stats.client.CollectorClient collector;
 
     @GetMapping
     public List<ParticipationRequestDto> getAllByUser(@PathVariable("userId") Long userId) {
@@ -24,7 +25,9 @@ public class RequestPrivateController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto create(@PathVariable("userId") Long userId,
                                           @RequestParam Long eventId) {
-        return requestService.create(userId, eventId);
+        ParticipationRequestDto result = requestService.create(userId, eventId);
+        collector.collect(userId, eventId, ru.practicum.ewm.stats.proto.ActionTypeProto.ACTION_REGISTER);
+        return result;
     }
 
     @PatchMapping("/{requestId}/cancel")
